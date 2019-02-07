@@ -3,6 +3,7 @@
 
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QTableView>
+#include <QPersistentModelIndex>
 
 class TableWidget : public QWidget
 {
@@ -25,7 +26,7 @@ signals:
 
 private:
     QTableView *m_tableView;
-    QModelIndexList m_copyList;
+    QList<QPersistentModelIndex> m_copyList;
 
 };
 

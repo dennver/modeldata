@@ -36,8 +36,9 @@ TableWidget::TableWidget(QWidget *parent)
     connect(m_tableView->actions().last(), &QAction::triggered, this, &TableWidget::copyElements);
     m_tableView->addAction(new QAction(tr("Paste"), m_tableView));
     connect(m_tableView->actions().last(), &QAction::triggered, this, &TableWidget::pasteElements);
-    m_tableView->actions().last()->setEnabled(false); /// TODO
+    m_tableView->actions().last()->setEnabled(false);
     connect(this, &TableWidget::copyAble, m_tableView->actions().last(), &QAction::setEnabled);
+
     // custom context menu
     m_tableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_tableView, &QTableView::customContextMenuRequested, this, &TableWidget::customMenuRequested);
@@ -109,7 +110,11 @@ void TableWidget::removeRow()
 
 void TableWidget::copyElements()
 {
-    m_copyList = m_tableView->selectionModel()->selectedIndexes();
+    QModelIndexList indexList = m_tableView->selectionModel()->selectedIndexes();
+    for (auto item : indexList) {
+        m_copyList.push_back(QPersistentModelIndex(item));
+    }
+
     emit copyAble(true);
 }
 
@@ -122,8 +127,10 @@ void TableWidget::pasteElements()
             int currentColumn = (index.column() + i) % (model->columnCount());
             int currentRow = (index.row()) + (index.column() + i) / (model->columnCount());
             QModelIndex child = model->index(currentRow, currentColumn, index.parent());
-            QModelIndex dataIndex = m_copyList.value(i);
-            QVariant data = dataIndex.data(Qt::EditRole);
-            model->setData(child, data, Qt::EditRole);
+            QPersistentModelIndex dataIndex = m_copyList.value(i);
+            if (dataIndex.isValid()) {
+                QVariant data = dataIndex.data(Qt::EditRole);
+                model->setData(child, data, Qt::EditRole);
+            }
         }
 }
